@@ -1,0 +1,22 @@
+AsyncHttpClient signature calculator example for twitter oauth:
+
+ConsumerKey clientAuth = new ConsumerKey(APP_TOKEN, APP_SECRET);
+SignatureCalculator REQUEST_TOKEN_CALC = new OAuthSignatureCalculator(clientAuth, new RequestToken("", ""));
+ListenableFuture<AuthData> f = asyncClient.preparePost("https://api.twitter.com/oauth/request_token")
+                    .setSignatureCalculator(REQUEST_TOKEN_CALC)
+                    .addParameter("oauth_callback", "http://myserver/oauth_response")
+                    .execute(handler);
+AuthData auth = f.get();//parses oauth_token & oauth_secret
+
+at this point, I store oauth token&secret & redirect user to twitter login;
+they get redirected back to the oauth_callback address with the token I supplied
+plus an oauth_verifier.
+I then do:
+
+RequestToken userAuth = new RequestToken(token, secret);
+SignatureCalculator calc = new OAuthSignatureCalculator(clientAuth, userAuth);
+client.preparePost("https://api.twitter.com/oauth/access_token")
+    .addParameter("oauth_verifier", verifier)
+    .setSignatureCalculator(calc)
+    .execute(handler)
+which gets me the access token.         
