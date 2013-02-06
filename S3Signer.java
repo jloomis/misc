@@ -23,6 +23,18 @@ import java.util.TreeMap;
 /***
  * Amazon S3 signature calculator for use with AsyncHttpClient (https://github.com/AsyncHttpClient/)
  *
+ * Requires patch to AHC's ThreadSafeHMAC.java to allow null userAuth:
+     private final Mac mac;
+
++    public ThreadSafeHMAC(ConsumerKey consumerAuth) {
++        this(consumerAuth, null);
++    }
++
+     public ThreadSafeHMAC(ConsumerKey consumerAuth, RequestToken userAuth) {
+-        byte[] keyBytes = UTF8Codec.toUTF8(consumerAuth.getSecret() + "&" + userAuth.getSecret());
++        byte[] keyBytes = userAuth == null? UTF8Codec.toUTF8(consumerAuth.getSecret()) : UTF8Codec.toUTF8(consumerAuth.getSecret() + "&" + userAuth.getSecret());
+         SecretKeySpec signingKey = new SecretKeySpec(keyBytes, HMAC_SHA1_ALGORITHM);
+ *
  * Usage:
  * SignatureCalculator signatureCalculator = new S3Signer(new ConsumerKey(MY_AWS_ID, MY_AWS_SECRET));
  * AsyncHttpClient.BoundRequestBuilder builder = client.prepareGet(url);
